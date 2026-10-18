@@ -79,3 +79,16 @@ def test_duplicate_email_raises(make_user):
     make_user("ana@x.com")
     with pytest.raises(ValueError, match="email_taken"):
         make_user("ANA@x.com")
+
+
+def test_password_hash_fits_small_machine():
+    """256 MB no Fly: argon2 com 64 MiB (padrão) estoura a memória. Usa 19 MiB, mínimo recomendado pela OWASP."""
+    from argon2 import PasswordHasher
+
+    from app.security import hash_password, verify_password
+
+    h = hash_password("senha123")
+    assert "m=19456,t=2,p=1" in h
+    assert verify_password("senha123", h)
+    old = PasswordHasher().hash("senha123")  # hashes antigos (64 MiB) continuam válidos
+    assert verify_password("senha123", old)

@@ -1,7 +1,8 @@
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
-_hasher = PasswordHasher()
+# 19 MiB de memória por hash (mínimo da OWASP): cabe na máquina de 256 MB do Fly.
+_hasher = PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1)
 
 
 def hash_password(password: str) -> str:

@@ -5,6 +5,8 @@
 
 app = 'social-media-green-wildflower-6858'
 primary_region = 'gru'
+# Memória de emergência em disco: picos (ex.: create-admin junto com o app) não matam o processo.
+swap_size_mb = 512
 
 [build]
 [deploy]
