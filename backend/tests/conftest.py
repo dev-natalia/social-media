@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app import models  # noqa: F401  (registra as tabelas)
 from app.config import Settings
 from app.db import Base, get_db, make_engine
 from app.main import create_app
