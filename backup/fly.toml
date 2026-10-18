@@ -1,6 +1,6 @@
 # App separado só para o backup. A máquina é criada com agendamento diário:
-#   fly machine run . --schedule daily --app planner-backup --restart no
-app = "planner-backup"
+#   fly machine run . --schedule daily --app social-media-backup --restart no
+app = "social-media-backup"
 primary_region = "gru"
 
 [build]
