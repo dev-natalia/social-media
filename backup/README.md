@@ -9,7 +9,7 @@ Uma máquina agendada no Fly roda `pg_dump` do Neon uma vez por dia e envia o ar
    - Em *R2 → Manage R2 API Tokens*, crie um token com permissão **Object Read & Write** só nesse bucket. Guarde o *Access Key ID*, o *Secret Access Key* e o *Account ID*.
    - No bucket, em *Settings → Object lifecycle rules*, crie uma regra: prefixo `planner/`, **Delete objects after 30 days**.
 
-2. **Versão do Postgres**: no console do Neon, rode `SELECT version();`. Se for maior que 17, troque `postgres:17-alpine` no `Dockerfile` pela versão correspondente.
+2. **Versão do Postgres**: no console do Neon, rode `SELECT version();`. Se for maior que 18, troque `postgres:18-alpine` no `Dockerfile` pela versão correspondente.
 
 3. **Fly** (dentro desta pasta `backup/`):
    ```bash
