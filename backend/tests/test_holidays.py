@@ -20,10 +20,19 @@ def test_ensure_year_caches(db_session):
 
 
 def test_fetch_failure_not_cached(db_session):
-    assert ensure_year(db_session, 2026, FakeFetcher(fail=True)) is False
+    assert ensure_year(db_session, 2026, FakeFetcher(fail=True), now=lambda: 0) is False
     assert _count(db_session) == 0
-    assert ensure_year(db_session, 2026, FakeFetcher(FINADOS_2026)) is True
+    assert ensure_year(db_session, 2026, FakeFetcher(FINADOS_2026), now=lambda: 601) is True
     assert _count(db_session) == 3
+
+
+def test_failure_backs_off_for_ten_minutes(db_session):
+    ensure_year(db_session, 2026, FakeFetcher(fail=True), now=lambda: 0)
+    retry = FakeFetcher(FINADOS_2026)
+    assert ensure_year(db_session, 2026, retry, now=lambda: 300) is False
+    assert retry.calls == []
+    assert ensure_year(db_session, 2026, retry, now=lambda: 601) is True
+    assert retry.calls == [2026]
 
 
 def test_empty_result_not_cached(db_session):

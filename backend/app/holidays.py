@@ -1,5 +1,6 @@
 import datetime as dt
 import logging
+import time
 from collections.abc import Callable
 
 import httpx
@@ -14,6 +15,11 @@ from app.models import HiddenHoliday, Holiday, User
 log = logging.getLogger(__name__)
 
 Fetcher = Callable[[int], list[dict]]
+
+# Depois de uma falha, espera antes de tentar a BrasilAPI de novo para o mesmo ano
+# (só em memória: nada é gravado no banco, então a próxima tentativa acontece).
+RETRY_AFTER_SECONDS = 600
+_failed_at: dict[int, float] = {}
 
 
 class HolidayOut(BaseModel):
@@ -35,17 +41,22 @@ def get_holiday_fetcher(request: Request) -> Fetcher:
     return make_brasilapi_fetcher(request.app.state.settings.brasilapi_url)
 
 
-def ensure_year(db: Session, year: int, fetcher: Fetcher) -> bool:
+def ensure_year(db: Session, year: int, fetcher: Fetcher, now: Callable[[], float] = time.monotonic) -> bool:
     if db.scalar(select(func.count()).select_from(Holiday).where(Holiday.year == year)):
         return True
+    failed = _failed_at.get(year)
+    if failed is not None and now() - failed < RETRY_AFTER_SECONDS:
+        return False
     try:
         rows = [h for h in fetcher(year) if h.get("type") == "national"]
     except Exception:
         log.warning("Falha ao buscar feriados de %s", year, exc_info=True)
-        return False
+        rows = []
     if not rows:
-        log.warning("BrasilAPI não retornou feriados nacionais para %s", year)
+        log.warning("Sem feriados nacionais da BrasilAPI para %s", year)
+        _failed_at[year] = now()
         return False
+    _failed_at.pop(year, None)
     seen: set[dt.date] = set()
     for h in rows:
         day = dt.date.fromisoformat(h["date"])

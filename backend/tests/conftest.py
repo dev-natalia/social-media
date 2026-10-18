@@ -133,3 +133,12 @@ def fetcher(app):
     fake = FakeFetcher(FINADOS_2026)
     app.dependency_overrides[get_holiday_fetcher] = lambda: fake
     return fake
+
+
+@pytest.fixture(autouse=True)
+def _reset_holiday_backoff():
+    from app import holidays
+
+    holidays._failed_at.clear()
+    yield
+    holidays._failed_at.clear()
