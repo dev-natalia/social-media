@@ -1,0 +1,9 @@
+.superpowers/
+node_modules/
+.venv/
+dist/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+*.egg-info/
