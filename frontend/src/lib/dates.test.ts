@@ -17,7 +17,7 @@ import {
 
 describe('dates', () => {
   it('runs in the São Paulo timezone', () => {
-    expect(process.env.TZ).toBe('America/Sao_Paulo')
+    expect(new Date(2026, 10, 2).getTimezoneOffset()).toBe(180)
   })
 
   it('round-trips an ISO date without shifting the day', () => {
