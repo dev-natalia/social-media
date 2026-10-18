@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PostPanel from './PostPanel'
 import { makePost, PLATFORMS, TYPES } from '../test/fixtures'
@@ -64,6 +64,44 @@ describe('PostPanel', () => {
     const body = jsonBody(spy.mock.calls[0][1])
     expect(body.platform_ids).toEqual([PLATFORMS[1].id])
     expect(body.status).toBe('postado')
+  })
+
+  it('picks the format with buttons', async () => {
+    const post = makePost({ format: 'Reels' })
+    const spy = mockFetch(() => ({ body: post }))
+    renderPanel({ post })
+    const group = screen.getByRole('group', { name: 'Formato' })
+    expect(within(group).getByRole('button', { name: 'Reels' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(within(group).getByRole('button', { name: 'Carrossel' }))
+    expect(within(group).getByRole('button', { name: 'Reels' })).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(jsonBody(spy.mock.calls[0][1]).format).toBe('Carrossel')
+  })
+
+  it('clears the format when the selected button is clicked again', async () => {
+    const post = makePost({ format: 'Reels' })
+    const spy = mockFetch(() => ({ body: post }))
+    renderPanel({ post })
+    await userEvent.click(within(screen.getByRole('group', { name: 'Formato' })).getByRole('button', { name: 'Reels' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(jsonBody(spy.mock.calls[0][1]).format).toBeNull()
+  })
+
+  it('types a custom format with Outro', async () => {
+    const spy = mockFetch(() => ({ body: makePost() }))
+    renderPanel({ post: makePost({ format: null }) })
+    expect(screen.queryByLabelText('Qual formato?')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Outro' }))
+    await userEvent.type(screen.getByLabelText('Qual formato?'), 'Live')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(jsonBody(spy.mock.calls[0][1]).format).toBe('Live')
+  })
+
+  it('shows a custom format already saved under Outro', () => {
+    mockFetch(() => undefined)
+    renderPanel({ post: makePost({ format: 'Live' }) })
+    expect(screen.getByRole('button', { name: 'Outro' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText('Qual formato?')).toHaveValue('Live')
   })
 
   it('shows the backend 422 detail', async () => {

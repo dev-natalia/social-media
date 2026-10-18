@@ -51,6 +51,8 @@ export default function PostPanel({ clientId, post, defaultDate = '', contentTyp
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const pressedOnBackdrop = useRef(false)
+  const [startedAsOther] = useState(() => !!initial.format && !FORMAT_SUGGESTIONS.includes(initial.format))
+  const [otherFormat, setOtherFormat] = useState(startedAsOther)
 
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
   const requestClose = useCallback(() => {
@@ -169,20 +171,49 @@ export default function PostPanel({ clientId, post, defaultDate = '', contentTyp
             </div>
           </div>
 
-          <label>
-            Formato
-            <input
-              list="format-suggestions"
-              value={form.format ?? ''}
-              maxLength={30}
-              onChange={(e) => set('format', e.target.value || null)}
-            />
-            <datalist id="format-suggestions">
+          <div className="field">
+            <span className="label" id="format-label">
+              Formato
+            </span>
+            <div className="chips" role="group" aria-labelledby="format-label">
               {FORMAT_SUGGESTIONS.map((f) => (
-                <option key={f} value={f} />
+                <button
+                  key={f}
+                  type="button"
+                  className="chip"
+                  aria-pressed={!otherFormat && form.format === f}
+                  onClick={() => {
+                    setOtherFormat(false)
+                    set('format', form.format === f && !otherFormat ? null : f)
+                  }}
+                >
+                  {f}
+                </button>
               ))}
-            </datalist>
-          </label>
+              <button
+                type="button"
+                className="chip"
+                aria-pressed={otherFormat}
+                onClick={() => {
+                  setOtherFormat(!otherFormat)
+                  set('format', null)
+                }}
+              >
+                Outro
+              </button>
+            </div>
+            {otherFormat && (
+              <label>
+                Qual formato?
+                <input
+                  value={form.format ?? ''}
+                  maxLength={30}
+                  autoFocus={!startedAsOther}
+                  onChange={(e) => set('format', e.target.value || null)}
+                />
+              </label>
+            )}
+          </div>
 
           <div className="field">
             <span className="label">Status</span>
