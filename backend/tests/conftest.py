@@ -75,3 +75,28 @@ def user_client(client, make_user):
     make_user("ana@x.com")
     login(client, "ana@x.com")
     return client
+
+
+def add_post(db, client_id: int, day: str, status: str = "a_fazer", title: str = "Post", **extra):
+    """Insere um post direto no banco usando o primeiro tipo do dono do cliente."""
+    import datetime as dt
+
+    from sqlalchemy import select
+
+    from app.models import Client, ContentType, Post, PostStatus
+
+    client = db.get(Client, client_id)
+    ctype = db.scalar(
+        select(ContentType).where(ContentType.user_id == client.user_id).order_by(ContentType.position)
+    )
+    post = Post(
+        client_id=client_id,
+        title=title,
+        date=dt.date.fromisoformat(day),
+        content_type_id=ctype.id,
+        status=PostStatus(status),
+        **extra,
+    )
+    db.add(post)
+    db.commit()
+    return post
