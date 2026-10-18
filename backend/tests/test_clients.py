@@ -97,3 +97,11 @@ def test_other_user_client_404(client, make_user):
 
 def test_invalid_color_422(user_client):
     assert user_client.post("/api/clients", json={"name": "X", "color": "azul"}).status_code == 422
+
+
+def test_get_single_client(user_client, make_user):
+    cid = _new_client(user_client)["id"]
+    r = user_client.get(f"/api/clients/{cid}")
+    assert r.status_code == 200
+    assert r.json()["name"] == "Padaria Trigo"
+    assert user_client.get("/api/clients/9999").status_code == 404

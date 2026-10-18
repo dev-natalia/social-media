@@ -86,6 +86,11 @@ def create_client(data: ClientIn, db: Session = Depends(get_db), user: User = De
     return _summary_now(db, client)
 
 
+@router.get("/{client_id}", response_model=ClientSummary)
+def get_client(client_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    return _summary_now(db, get_owned_client(client_id, user, db))
+
+
 @router.patch("/{client_id}", response_model=ClientSummary)
 def update_client(
     client_id: int, data: ClientPatch, db: Session = Depends(get_db), user: User = Depends(current_user)
