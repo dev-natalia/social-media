@@ -202,3 +202,45 @@ textarea { resize: vertical; min-height: 90px; }
 @media (max-width: 767px) {
   .post-panel { width: 100%; border-radius: 0; }
 }
+
+/* ---- mês ---- */
+.month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.month-head { text-align: center; font-weight: 600; font-size: 0.85rem; padding: 4px 0; color: #555; }
+.month-cell {
+  background: var(--card); border-radius: 8px; min-height: 110px; padding: 4px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px; min-width: 0; border: 2px solid transparent;
+}
+.month-cell.outside { opacity: 0.45; }
+.month-cell.today { border-color: var(--ink); }
+.month-num { align-self: flex-start; background: none; border: none; font-weight: 600; cursor: pointer; padding: 0 3px; }
+.month-posts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.more { background: none; border: none; font-size: 0.75rem; color: var(--muted); cursor: pointer; text-align: left; }
+.month-dots { display: none; flex-wrap: wrap; gap: 3px; }
+.month-dots span { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ---- dia ---- */
+.day-view { display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
+.day-card { border-radius: var(--radius); border-left: 5px solid; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.day-card-head { display: flex; gap: 10px; align-items: flex-start; }
+.day-card-head > div { flex: 1; min-width: 0; }
+.day-card-head h3 { margin: 0 0 2px; font-size: 1rem; }
+.day-card-head p { margin: 0; }
+.day-card-check ul { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.85rem; }
+.day-card-check li { color: var(--muted); }
+.day-card-check li.done { color: var(--ink); }
+.day-card-desc {
+  margin: 0; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.day-view > .btn { align-self: flex-start; }
+
+@media (max-width: 767px) {
+  .month { gap: 2px; }
+  .month-cell { min-height: 58px; padding: 2px; }
+  .month-posts { display: none; }
+  .month-dots { display: flex; }
+  .month-cell .day-tags { flex-direction: row; gap: 2px; }
+  .month-cell .tag { font-size: 0; width: 8px; height: 8px; padding: 0; border-radius: 2px; }
+  .month-cell .tag.holiday { background: var(--holiday-ink); }
+  .month-cell .tag.important { background: var(--date-ink); }
+}

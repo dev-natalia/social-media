@@ -5,9 +5,21 @@ import type { ClientSummary, ColorItem, Post, PostStatus } from '../api/types'
 import ClientAvatar from '../components/ClientAvatar'
 import PostPanel from '../components/PostPanel'
 import StatusFilter from '../components/StatusFilter'
+import DayView from '../components/DayView'
+import MonthView from '../components/MonthView'
 import WeekView from '../components/WeekView'
 import { useCalendar } from '../hooks/useCalendar'
-import { addDays, formatWeekRange, startOfWeek, todayISO, weekDays } from '../lib/dates'
+import {
+  addDays,
+  addMonths,
+  formatDayLong,
+  formatMonth,
+  formatWeekRange,
+  monthGrid,
+  startOfWeek,
+  todayISO,
+  weekDays,
+} from '../lib/dates'
 
 type View = 'dia' | 'semana' | 'mes'
 const VIEWS: { key: View; label: string }[] = [
@@ -38,9 +50,14 @@ export default function PlannerPage() {
   }, [])
 
   const range = useMemo(() => {
+    if (view === 'dia') return { start: date, end: date, label: formatDayLong(date), days: [date], grid: [] }
+    if (view === 'mes') {
+      const grid = monthGrid(date)
+      return { start: grid[0][0], end: grid[grid.length - 1][6], label: formatMonth(date), days: [], grid }
+    }
     const start = startOfWeek(date)
-    return { start, end: addDays(start, 6), days: weekDays(start), label: formatWeekRange(start) }
-  }, [date])
+    return { start, end: addDays(start, 6), days: weekDays(start), label: formatWeekRange(start), grid: [] }
+  }, [date, view])
 
   const { data, setData, error, reload } = useCalendar(clientId, range.start, range.end, statuses)
 
@@ -51,7 +68,9 @@ export default function PlannerPage() {
   }
 
   function step(dir: 1 | -1) {
-    go({ data: addDays(date, 7 * dir) })
+    if (view === 'dia') go({ data: addDays(date, dir) })
+    else if (view === 'mes') go({ data: addMonths(date, dir) })
+    else go({ data: addDays(date, 7 * dir) })
   }
 
   async function movePost(postId: number, newDate: string) {
@@ -95,14 +114,27 @@ export default function PlannerPage() {
       </div>
       <StatusFilter value={statuses} onChange={setStatuses} />
       {error && <p className="error">{error}</p>}
-      <WeekView
-        days={range.days}
-        calendar={data}
-        today={today}
-        onOpenPost={openPost}
-        onCreate={createPost}
-        onMove={movePost}
-      />
+      {view === 'semana' && (
+        <WeekView
+          days={range.days}
+          calendar={data}
+          today={today}
+          onOpenPost={openPost}
+          onCreate={createPost}
+          onMove={movePost}
+        />
+      )}
+      {view === 'mes' && (
+        <MonthView
+          grid={range.grid}
+          month={date}
+          today={today}
+          calendar={data}
+          onOpenDay={(d) => go({ view: 'dia', data: d })}
+          onOpenPost={openPost}
+        />
+      )}
+      {view === 'dia' && <DayView date={date} calendar={data} onOpenPost={openPost} onCreate={createPost} />}
       {panel && (
         <PostPanel
           key={panel.post?.id ?? `new-${panel.date}`}
