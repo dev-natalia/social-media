@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, RequireAdmin, RequireAuth } from './auth/AuthContext'
 import TopNav from './components/TopNav'
+import ClientsPage from './pages/ClientsPage'
 import LoginPage from './pages/LoginPage'
 
 function Shell({ children }: { children: ReactNode }) {
@@ -21,7 +22,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<Shell><Placeholder title="Meus clientes" /></Shell>} />
+          <Route path="/" element={<Shell><ClientsPage /></Shell>} />
           <Route path="/clientes/:id" element={<Shell><Placeholder title="Planner" /></Shell>} />
           <Route path="/config/tipos" element={<Shell><Placeholder title="Tipos de conteúdo" /></Shell>} />
           <Route path="/config/redes" element={<Shell><Placeholder title="Redes" /></Shell>} />
