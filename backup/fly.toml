@@ -1,0 +1,7 @@
+# App separado só para o backup. A máquina é criada com agendamento diário:
+#   fly machine run . --schedule daily --app planner-backup --restart no
+app = "planner-backup"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
