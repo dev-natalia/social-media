@@ -48,3 +48,29 @@ def app(engine, settings):
 def client(app):
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+def make_user(db_session):
+    from app.seed import create_user
+
+    def _make(email: str, password: str = "senha123", is_admin: bool = False):
+        user = create_user(db_session, email, password, is_admin=is_admin)
+        db_session.commit()
+        return user
+
+    return _make
+
+
+def login(client, email: str, password: str = "senha123"):
+    r = client.post("/api/auth/login", json={"email": email, "password": password})
+    assert r.status_code == 200, r.text
+    return r
+
+
+@pytest.fixture
+def user_client(client, make_user):
+    """Cliente HTTP já logado como ana@x.com."""
+    make_user("ana@x.com")
+    login(client, "ana@x.com")
+    return client
