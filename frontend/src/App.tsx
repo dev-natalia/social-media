@@ -3,8 +3,13 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, RequireAdmin, RequireAuth } from './auth/AuthContext'
 import TopNav from './components/TopNav'
 import ClientsPage from './pages/ClientsPage'
+import ContentTypesPage from './pages/ContentTypesPage'
+import HolidaysPage from './pages/HolidaysPage'
+import ImportantDatesPage from './pages/ImportantDatesPage'
 import LoginPage from './pages/LoginPage'
 import PlannerPage from './pages/PlannerPage'
+import PlatformsPage from './pages/PlatformsPage'
+import UsersPage from './pages/UsersPage'
 
 function Shell({ children }: { children: ReactNode }) {
   return (
@@ -15,8 +20,6 @@ function Shell({ children }: { children: ReactNode }) {
   )
 }
 
-const Placeholder = ({ title }: { title: string }) => <h1>{title}</h1>
-
 export default function App() {
   return (
     <AuthProvider>
@@ -25,16 +28,16 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<Shell><ClientsPage /></Shell>} />
           <Route path="/clientes/:id" element={<Shell><PlannerPage /></Shell>} />
-          <Route path="/config/tipos" element={<Shell><Placeholder title="Tipos de conteúdo" /></Shell>} />
-          <Route path="/config/redes" element={<Shell><Placeholder title="Redes" /></Shell>} />
-          <Route path="/config/datas" element={<Shell><Placeholder title="Datas importantes" /></Shell>} />
-          <Route path="/config/feriados" element={<Shell><Placeholder title="Feriados" /></Shell>} />
+          <Route path="/config/tipos" element={<Shell><ContentTypesPage /></Shell>} />
+          <Route path="/config/redes" element={<Shell><PlatformsPage /></Shell>} />
+          <Route path="/config/datas" element={<Shell><ImportantDatesPage /></Shell>} />
+          <Route path="/config/feriados" element={<Shell><HolidaysPage /></Shell>} />
           <Route
             path="/usuarios"
             element={
               <Shell>
                 <RequireAdmin>
-                  <Placeholder title="Usuários" />
+                  <UsersPage />
                 </RequireAdmin>
               </Shell>
             }

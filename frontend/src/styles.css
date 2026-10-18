@@ -244,3 +244,20 @@ textarea { resize: vertical; min-height: 90px; }
   .month-cell .tag.holiday { background: var(--holiday-ink); }
   .month-cell .tag.important { background: var(--date-ink); }
 }
+
+/* ---- cadastros ---- */
+.settings { max-width: 720px; display: flex; flex-direction: column; gap: 10px; }
+.settings > .btn { align-self: flex-start; }
+.notice { background: #e8f5ec; color: #1d6b38; padding: 8px 10px; border-radius: 8px; margin: 0; }
+.color-list, .date-list, .user-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.color-list li, .date-list li, .user-list li {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px;
+}
+.color-list li input:not([type='color']) { flex: 1; }
+.date-when { min-width: 120px; color: #555; font-variant-numeric: tabular-nums; }
+.date-name { flex: 1; min-width: 0; }
+.hidden-holiday .date-name, .hidden-holiday .date-when { text-decoration: line-through; color: var(--muted); }
+.date-section { display: flex; flex-direction: column; gap: 8px; }
+.date-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.date-form label:not(.check) { flex: 1; min-width: 160px; }
+.date-form .check { padding-bottom: 8px; }

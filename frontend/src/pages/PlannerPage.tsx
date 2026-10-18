@@ -91,6 +91,9 @@ export default function PlannerPage() {
           </Link>
           {client && <ClientAvatar client={client} />}
           <h1>{client?.name ?? '…'}</h1>
+          <Link to={`/config/datas?cliente=${clientId}`} className="small muted">
+            Datas do cliente
+          </Link>
         </div>
         <div className="planner-nav">
           <button className="btn" aria-label="Anterior" onClick={() => step(-1)}>
