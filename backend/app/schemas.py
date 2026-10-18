@@ -128,3 +128,26 @@ class PostOut(BaseModel):
     drive_url: str | None
     checklist: dict[str, bool]
     updated_at: dt.datetime
+
+
+class ImportantDateIn(BaseModel):
+    date: dt.date
+    name: str = Field(min_length=1, max_length=60)
+    client_id: int | None = None
+    recurring_yearly: bool = False
+
+
+class ImportantDatePatch(BaseModel):
+    date: dt.date | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=60)
+    recurring_yearly: bool | None = None
+
+
+class ImportantDateOut(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: int
+    date: dt.date
+    name: str
+    client_id: int | None
+    recurring_yearly: bool
