@@ -1,19 +1,28 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from app.config import Settings
+from app.db import get_db
 from app.main import create_app
 
 
 @pytest.fixture
-def spa_client(tmp_path):
+def spa_client(tmp_path, engine):
     (tmp_path / "index.html").write_text("<html>app</html>", encoding="utf-8")
     (tmp_path / "assets").mkdir()
     (tmp_path / "assets" / "a.js").write_text("console.log(1)", encoding="utf-8")
     (tmp_path / "sw.js").write_text("// sw", encoding="utf-8")
     (tmp_path / "manifest.webmanifest").write_text("{}", encoding="utf-8")
     settings = Settings(database_url="sqlite://", secret_key="x", static_dir=str(tmp_path))
-    with TestClient(create_app(settings)) as c:
+    app = create_app(settings)
+
+    def override_get_db():
+        with Session(engine) as session:
+            yield session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as c:
         yield c
 
 
