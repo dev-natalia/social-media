@@ -100,3 +100,36 @@ def add_post(db, client_id: int, day: str, status: str = "a_fazer", title: str =
     db.add(post)
     db.commit()
     return post
+
+
+class FakeFetcher:
+    """Substitui a BrasilAPI nos testes."""
+
+    def __init__(self, data: dict[int, list[dict]] | None = None, fail: bool = False):
+        self.data = data or {}
+        self.fail = fail
+        self.calls: list[int] = []
+
+    def __call__(self, year: int) -> list[dict]:
+        self.calls.append(year)
+        if self.fail:
+            raise RuntimeError("BrasilAPI fora do ar")
+        return self.data.get(year, [])
+
+
+FINADOS_2026 = {
+    2026: [
+        {"date": "2026-11-02", "name": "Finados", "type": "national"},
+        {"date": "2026-11-15", "name": "Proclamação da República", "type": "national"},
+        {"date": "2026-11-20", "name": "Dia da consciência negra", "type": "national"},
+    ]
+}
+
+
+@pytest.fixture
+def fetcher(app):
+    from app.holidays import get_holiday_fetcher
+
+    fake = FakeFetcher(FINADOS_2026)
+    app.dependency_overrides[get_holiday_fetcher] = lambda: fake
+    return fake

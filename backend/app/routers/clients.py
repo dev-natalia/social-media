@@ -1,14 +1,19 @@
 import datetime as dt
 import hashlib
 
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import current_user, get_owned_client
 from app.models import Client, Post, PostStatus, User
-from app.schemas import ClientIn, ClientPatch, ClientSummary, NextPost
+from app.dates import Occurrence
+from app.holidays import Fetcher, HolidayOut, get_holiday_fetcher, holidays_between
+from app.routers.important_dates import occurrences_for_client
+from app.routers.posts import list_posts
+from app.schemas import ClientIn, ClientPatch, ClientSummary, NextPost, PostOut
 
 router = APIRouter(prefix="/api/clients", tags=["clients"])
 
@@ -139,3 +144,29 @@ def delete_logo(client_id: int, db: Session = Depends(get_db), user: User = Depe
     client.logo_mime = None
     db.commit()
     return Response(status_code=204)
+
+
+class CalendarOut(BaseModel):
+    posts: list[PostOut]
+    holidays: list[HolidayOut]
+    important_dates: list[Occurrence]
+
+
+@router.get("/{client_id}/calendar", response_model=CalendarOut)
+def calendar(
+    client_id: int,
+    start: dt.date,
+    end: dt.date,
+    status: list[PostStatus] = Query(default=[]),
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+    fetcher: Fetcher = Depends(get_holiday_fetcher),
+):
+    client = get_owned_client(client_id, user, db)
+    if end < start or (end - start).days + 1 > 62:
+        raise HTTPException(400, "Intervalo inválido (máximo de 62 dias)")
+    return CalendarOut(
+        posts=list_posts(db, client, start, end, status),
+        holidays=holidays_between(db, user, start, end, fetcher),
+        important_dates=occurrences_for_client(db, user, client, start, end),
+    )
