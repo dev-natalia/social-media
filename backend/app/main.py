@@ -17,10 +17,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         https_only=settings.cookie_secure,
     )
 
-    from app.routers import auth, users
+    from app.routers import auth, content_types, platforms, users
 
     app.include_router(auth.router)
-    app.include_router(users.router)
+    for module in (users, content_types, platforms):
+        app.include_router(module.router)
 
     @app.get("/api/health")
     def health():
