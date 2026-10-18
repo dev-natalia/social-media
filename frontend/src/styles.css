@@ -178,3 +178,27 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; colo
   .planner-head { gap: 8px; }
   .planner-nav { width: 100%; }
 }
+
+/* ---- painel do post ---- */
+.panel-backdrop { position: fixed; inset: 0; background: #0003; z-index: 40; display: flex; justify-content: flex-end; }
+.post-panel {
+  width: 420px; max-width: 100%; height: 100%; overflow-y: auto; background: var(--card);
+  padding: 16px; border-top: 6px solid var(--line); box-shadow: -4px 0 20px #0001;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.segmented { display: flex; flex-wrap: wrap; gap: 2px; background: #ece8e1; padding: 3px; border-radius: 9px; }
+.segmented label {
+  flex: 1; flex-direction: row; justify-content: center; padding: 5px 6px; border-radius: 7px;
+  cursor: pointer; font-size: 0.85rem; color: var(--ink); white-space: nowrap;
+}
+.segmented label.on { background: var(--ink); color: #fff; }
+.segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.segmented label:has(input:focus-visible) { outline: 2px solid #3b82f6; }
+.checklist { display: flex; flex-direction: column; gap: 6px; }
+.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: 0.92rem; cursor: pointer; }
+textarea { resize: vertical; min-height: 90px; }
+
+@media (max-width: 767px) {
+  .post-panel { width: 100%; border-radius: 0; }
+}

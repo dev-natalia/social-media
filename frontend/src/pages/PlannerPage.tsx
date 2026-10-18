@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import type { ClientSummary, Post, PostStatus } from '../api/types'
+import type { ClientSummary, ColorItem, Post, PostStatus } from '../api/types'
 import ClientAvatar from '../components/ClientAvatar'
+import PostPanel from '../components/PostPanel'
 import StatusFilter from '../components/StatusFilter'
 import WeekView from '../components/WeekView'
 import { useCalendar } from '../hooks/useCalendar'
@@ -23,10 +24,18 @@ export default function PlannerPage() {
   const date = params.get('data') || today
   const [statuses, setStatuses] = useState<PostStatus[]>([])
   const [client, setClient] = useState<ClientSummary | null>(null)
+  const [contentTypes, setContentTypes] = useState<ColorItem[]>([])
+  const [platforms, setPlatforms] = useState<ColorItem[]>([])
+  const [panel, setPanel] = useState<{ post?: Post; date?: string } | null>(null)
 
   useEffect(() => {
     api<ClientSummary>(`/api/clients/${clientId}`).then(setClient).catch(() => setClient(null))
   }, [clientId])
+
+  useEffect(() => {
+    api<ColorItem[]>('/api/content-types').then(setContentTypes).catch(() => {})
+    api<ColorItem[]>('/api/platforms').then(setPlatforms).catch(() => {})
+  }, [])
 
   const range = useMemo(() => {
     const start = startOfWeek(date)
@@ -47,15 +56,12 @@ export default function PlannerPage() {
 
   async function movePost(postId: number, newDate: string) {
     setData((d) => d && { ...d, posts: d.posts.map((p) => (p.id === postId ? { ...p, date: newDate } : p)) })
-    try {
-      await api(`/api/posts/${postId}`, { method: 'PATCH', json: { date: newDate } })
-    } finally {
-      reload()
-    }
+    await api(`/api/posts/${postId}`, { method: 'PATCH', json: { date: newDate } }).catch(() => {})
+    reload()
   }
 
-  const openPost = (_post: Post) => {}
-  const createPost = (_date: string) => {}
+  const openPost = (post: Post) => setPanel({ post })
+  const createPost = (day: string) => setPanel({ date: day })
 
   return (
     <div className="planner">
@@ -97,6 +103,21 @@ export default function PlannerPage() {
         onCreate={createPost}
         onMove={movePost}
       />
+      {panel && (
+        <PostPanel
+          key={panel.post?.id ?? `new-${panel.date}`}
+          clientId={clientId}
+          post={panel.post}
+          defaultDate={panel.date}
+          contentTypes={contentTypes}
+          platforms={platforms}
+          onClose={() => setPanel(null)}
+          onSaved={() => {
+            setPanel(null)
+            reload()
+          }}
+        />
+      )}
     </div>
   )
 }
