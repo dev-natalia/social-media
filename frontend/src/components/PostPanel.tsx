@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react'
 import { api, ApiError } from '../api/client'
 import type { Checklist, ColorItem, Post, PostInput, PostStatus } from '../api/types'
 import { tint } from '../lib/color'
@@ -46,15 +46,29 @@ function initialForm(post: Post | undefined, defaultDate: string, contentTypes: 
 }
 
 export default function PostPanel({ clientId, post, defaultDate = '', contentTypes, platforms, onClose, onSaved }: Props) {
-  const [form, setForm] = useState<PostInput>(() => initialForm(post, defaultDate, contentTypes))
+  const [initial] = useState<PostInput>(() => initialForm(post, defaultDate, contentTypes))
+  const [form, setForm] = useState<PostInput>(initial)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const pressedOnBackdrop = useRef(false)
+
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial)
+  const requestClose = useCallback(() => {
+    if (!dirty || window.confirm('Descartar as alterações deste post?')) onClose()
+  }, [dirty, onClose])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && requestClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [requestClose])
+
+  // Só fecha se o clique começou e terminou no fundo (arrastar uma seleção para fora não fecha).
+  const onBackdropDown = (e: MouseEvent) => (pressedOnBackdrop.current = e.target === e.currentTarget)
+  const onBackdropClick = (e: MouseEvent) => {
+    if (pressedOnBackdrop.current && e.target === e.currentTarget) requestClose()
+    pressedOnBackdrop.current = false
+  }
 
   const set = <K extends keyof PostInput>(key: K, value: PostInput[K]) => setForm((f) => ({ ...f, [key]: value }))
   const done = CHECKLIST_ITEMS.filter((i) => form.checklist[i.key]).length
@@ -92,18 +106,17 @@ export default function PostPanel({ clientId, post, defaultDate = '', contentTyp
   const driveOk = form.drive_url && /^https?:\/\//.test(form.drive_url.trim())
 
   return (
-    <div className="panel-backdrop" onClick={onClose}>
+    <div className="panel-backdrop" onMouseDown={onBackdropDown} onClick={onBackdropClick}>
       <aside
         className="post-panel"
         role="dialog"
         aria-label={post ? 'Editar post' : 'Novo post'}
-        onClick={(e) => e.stopPropagation()}
         style={{ borderTopColor: ctype?.color }}
       >
         <form onSubmit={submit} className="form">
           <div className="modal-head">
             <h2>{post ? 'Editar post' : 'Novo post'}</h2>
-            <button type="button" className="icon-btn" aria-label="Fechar" onClick={onClose}>
+            <button type="button" className="icon-btn" aria-label="Fechar" onClick={requestClose}>
               ✕
             </button>
           </div>

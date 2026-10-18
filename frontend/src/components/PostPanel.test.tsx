@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PostPanel from './PostPanel'
 import { makePost, PLATFORMS, TYPES } from '../test/fixtures'
@@ -106,10 +106,34 @@ describe('PostPanel', () => {
     expect(props.onSaved).toHaveBeenCalled()
   })
 
-  it('closes on Escape', async () => {
+  it('closes on Escape when nothing changed', async () => {
     mockFetch(() => undefined)
     const props = renderPanel({ post: makePost() })
     await userEvent.keyboard('{Escape}')
+    expect(props.onClose).toHaveBeenCalled()
+  })
+
+  it('asks before discarding edits on Escape', async () => {
+    mockFetch(() => undefined)
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const props = renderPanel({ post: makePost() })
+    await userEvent.type(screen.getByLabelText('Descrição'), 'roteiro novo')
+    await userEvent.keyboard('{Escape}')
+    expect(confirm).toHaveBeenCalledWith('Descartar as alterações deste post?')
+    expect(props.onClose).not.toHaveBeenCalled()
+  })
+
+  it('does not close when a drag starts inside and ends on the backdrop', () => {
+    mockFetch(() => undefined)
+    const props = renderPanel({ post: makePost() })
+    const panel = screen.getByRole('dialog')
+    const backdrop = panel.parentElement!
+    fireEvent.mouseDown(screen.getByLabelText('Descrição'))
+    fireEvent.mouseUp(backdrop)
+    fireEvent.click(backdrop)
+    expect(props.onClose).not.toHaveBeenCalled()
+    fireEvent.mouseDown(backdrop)
+    fireEvent.click(backdrop)
     expect(props.onClose).toHaveBeenCalled()
   })
 })

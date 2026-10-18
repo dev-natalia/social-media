@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 interface Props {
   title: string
@@ -13,9 +13,17 @@ export default function Modal({ title, onClose, children }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  const pressedOnBackdrop = useRef(false)
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
+    <div
+      className="modal-backdrop"
+      onMouseDown={(e) => (pressedOnBackdrop.current = e.target === e.currentTarget)}
+      onClick={(e) => {
+        if (pressedOnBackdrop.current && e.target === e.currentTarget) onClose()
+        pressedOnBackdrop.current = false
+      }}
+    >
+      <div className="modal" role="dialog" aria-label={title}>
         <div className="modal-head">
           <h2>{title}</h2>
           <button className="icon-btn" aria-label="Fechar" onClick={onClose}>
