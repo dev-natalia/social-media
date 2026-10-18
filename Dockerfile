@@ -10,9 +10,11 @@ RUN npm run build
 FROM python:3.13-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 STATIC_DIR=/app/static
 WORKDIR /app/backend
+COPY backend/requirements.lock ./
+RUN pip install --no-cache-dir -r requirements.lock
 COPY backend/pyproject.toml ./
 COPY backend/app ./app
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir --no-deps .
 COPY backend/alembic.ini ./
 COPY backend/alembic ./alembic
 COPY --from=frontend /src/frontend/dist /app/static
